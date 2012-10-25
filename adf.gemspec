@@ -8,8 +8,8 @@ Gem::Specification.new do |gem|
   gem.version       = Adf::VERSION
   gem.authors       = ["Andrew Stevens"]
   gem.email         = ["andy@orangesix.com"]
-  gem.description   = %q{TODO: ADF Parser}
-  gem.summary       = %q{TODO: Basic parsing of ADF format XML files}
+  gem.description   = %q{ADF Parser}
+  gem.summary       = %q{Basic parsing of ADF format XML files}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)
