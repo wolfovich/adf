@@ -1,17 +1,14 @@
-class ADF::Address
+class ADF::Timeframe
   include ADF::InitializedModel
-  attr_accessor :attributes, :streets, :city, :regioncode, :postalcode, :country, :apartment
-  STRING_ATTRIBUTES = [:apartment, :city, :regioncode, :postalcode, :country]
+  attr_accessor :description, :earliestdate, :latestdate
+  STRING_ATTRIBUTES = [:description, :earliestdate, :latestdate]
   ATTRIBUTES = ['type']
 
   def to_adf xml
-    xml.address(@attributes) {
+    xml.timeframe(@attributes) {
       STRING_ATTRIBUTES.each do |attr|
         next if self.send(attr).nil?
         xml.send(attr, self.send(attr))
-      end
-      @streets.each do |street|
-        xml.street street
       end
     }
   end
@@ -29,11 +26,6 @@ class ADF::Address
       params[attr] = doc.xpath(attr.to_s).inner_html.to_s.strip
     end
 
-    params[:streets] = []
-    doc.xpath('street')[0..4].each do |node|
-      params[:streets] << node.inner_html.to_s.strip
-    end
-
-    ADF::Address.new  params
+    ADF::Timeframe.new  params
   end
 end

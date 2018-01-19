@@ -1,35 +1,61 @@
 class ADF::Contact
   include ADF::InitializedModel
-  attr_accessor :full_name, :first_name, :last_name, :cell_phone, :day_phone, :evening_phone, :email, :address
+  attr_accessor :attributes, :name, :email, :phone, :addresses
+  HASH_ATTRIBUTES = [:name, :email, :phone]
+  ATTRIBUTES = ['primarycontact']
 
-  def full_name
-    @full_name.present? ? @full_name : "#{first_name} #{last_name}"
-  end
+  # def full_name
+  #   @full_name.present? ? @full_name : "#{first_name} #{last_name}"
+  # end
+  #
+  # def first_name
+  #   @first_name.present? ? @first_name : @full_name.split(" ").first
+  # end
+  #
+  # def last_name
+  #   @last_name.present? ? @last_name : @full_name.split(" ").last
+  # end
 
-  def first_name
-    @first_name.present? ? @first_name : @full_name.split(" ").first
-  end
-
-  def last_name
-    @last_name.present? ? @last_name : @full_name.split(" ").last
-  end
-
-  def to_adf node
-    node.contact do |contact|
-      contact.name  name.to_s, :part => 'full'
-      contact.phone phone.to_s unless phone.to_s.empty?
-    end
+  def to_adf xml
+    xml.contact(@attributes) {
+      HASH_ATTRIBUTES.each do |attr|
+        next if self.send(attr).nil?
+        self.send(attr).each do |value|
+          xml.send(value[:name], value[:value], value[:attributes])
+        end
+      end
+      addresses.each do |address|
+        address.to_adf(xml)
+      end
+    }
   end
 
   def self.from_adf doc
-    ADF::Contact.new  :full_name  => doc.search("name[@part='full']").inner_html.strip,
-                      :first_name => doc.search("name[@part='first']").inner_html.strip,
-                      :last_name  => doc.search("name[@part='last']").inner_html.strip,
-                      :cell_phone    => doc.search("phone[@type='cellphone']").inner_html,
-                      :day_phone     => doc.search("phone[@time='day']").inner_html,
-                      :evening_phone => doc.search("phone[@time='evening']").inner_html,
-                      :email      => (doc / :email).inner_html,
-                      :address    => ADF::Address.from_adf(doc / :address)
+    params = {}
+    params[:attributes] = {}
+    doc.attributes.each do |name, value|
+      next unless ATTRIBUTES.include?(name)
+      params[:attributes][name] = value.value
+    end
+
+    HASH_ATTRIBUTES.each do |attr|
+      nodes = doc.xpath(attr.to_s)
+      next if nodes.empty?
+      params[attr] = []
+      nodes.each do |node|
+        attributes = {}
+        node.attributes.each do |name, value|
+          attributes[name] = value.value
+        end
+        value = node.inner_html.to_s.strip
+        params[attr] << {attributes: attributes, value: value, name: node.name}
+      end
+    end
+    params[:addresses] = []
+    doc.xpath('address').each do |node|
+      params[:addresses] << ADF::Address.from_adf(node)
+    end
+    ADF::Contact.new  params
 
   end
 end

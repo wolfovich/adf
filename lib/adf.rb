@@ -16,11 +16,16 @@ class ADF
     def initialize options = {}
       options.each { |k,v| instance_variable_set "@#{k}", v }
     end
+
+    def foo
+      'FOO'
+    end
   end
   # get an ADF::Prospect from an ADF formatted XML string
   def self.parse adf
     ADF::Prospect.from_adf adf
   end
+
 end
 
 require "adf/prospect"
@@ -30,3 +35,8 @@ require "adf/customer"
 require "adf/vehicle"
 require "adf/vendor"
 require "adf/version"
+require "adf/provider"
+require "adf/colorcombination"
+require "adf/finance"
+require "adf/option"
+require "adf/timeframe"
