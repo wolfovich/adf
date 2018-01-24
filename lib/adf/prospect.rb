@@ -5,46 +5,25 @@ class ADF::Prospect
 
   def to_adf
     builder = Nokogiri::XML::Builder.new do |xml|
-      xml.root {
-        xml.adf {
-          xml.prospect {
-            xml.requestdate requestdate.iso8601
-            ARRAY_ATTRIBUTES.each do |attr|
-              send(attr).each do |key|
-                next if key[:value].empty?
-                xml.send(key[:name], key[:value], key[:attributes])
-              end
+      adf_version = Nokogiri::XML::ProcessingInstruction.new(xml.doc, "adf",'version="1.0"')
+      xml.doc.add_child(adf_version)
+      xml.adf {
+        xml.prospect {
+          xml.requestdate requestdate.iso8601
+          ARRAY_ATTRIBUTES.each do |attr|
+            send(attr).each do |key|
+              next if key[:value].empty?
+              xml.send(key[:name], key[:value], key[:attributes])
             end
-            vehicle.to_adf(xml)
-            customer.to_adf(xml)
-            vendor.to_adf(xml)
-            provider.to_adf(xml)
-          }
+          end
+          vehicle.to_adf(xml)
+          customer.to_adf(xml)
+          vendor.to_adf(xml)
+          provider.to_adf(xml)
         }
       }
     end
     builder.to_xml
-
-
-    # xml = Builder::XmlMarkup.new :indent => 4
-    # xml.instruct! :XML, :VERSION => '1.0'
-    # xml.instruct! :ADF, :VERSION => '1.0'
-    #
-    # xml.adf do |adf|
-    #   adf.prospect do |prospect|
-    #     prospect.requestdate "#{ requestdate.iso8601 }"
-    #     ARRAY_ATTRIBUTES.each do |attr|
-    #       send(attr).each do |key|
-    #         prospect.send(:"#{key[:name]}", 1)
-    #       end
-    #     end
-    #     #vehicle.to_adf  prospect
-    #     #customer.to_adf prospect
-    #     #vendor.to_adf   prospect
-    #     # provider.to_adf prospect
-    #     #
-    #   end
-    # end
   end
 
   def self.from_adf adf
